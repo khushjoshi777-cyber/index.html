@@ -1,0 +1,207 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Khush AI Generator</title>
+  <style>
+    /* ===== Khush AI Generator - Simple single-file demo =====
+       Free to use. Replace assets and backend endpoints as needed.
+    */
+    :root{
+      --bg:#0b0f14; --card:#0f1720; --muted:#9aa6b2; --accent:#7c5cff; --glass: rgba(255,255,255,0.03);
+      --radius:12px; --mono: 'Segoe UI', Roboto, system-ui, -apple-system;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:var(--mono); background:linear-gradient(180deg,#071019 0%, #0b0f14 100%); color:#e6eef6;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    }
+    header{display:flex;align-items:center;gap:16px;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo .mark{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#00d4ff);display:flex;align-items:center;justify-content:center;font-weight:700}
+    .title{font-size:18px;font-weight:700}
+    .subtitle{font-size:12px;color:var(--muted)}main{padding:28px;max-width:980px;margin:18px auto}
+.grid{display:grid;grid-template-columns:1fr 360px;gap:20px}
+
+.card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:18px;border-radius:var(--radius);box-shadow:0 6px 20px rgba(2,6,23,0.6);border:1px solid rgba(255,255,255,0.03)}
+
+/* Left area */
+.creator h2{margin:0 0 8px 0;font-size:20px}
+.controls{display:flex;flex-direction:column;gap:12px}
+.input, .select, .textarea{background:var(--glass);border-radius:10px;padding:12px;border:1px solid rgba(255,255,255,0.03);color:inherit}
+.row{display:flex;gap:10px}
+.btn{background:var(--accent);padding:10px 14px;border-radius:10px;border:none;color:white;font-weight:600;cursor:pointer}
+.btn.secondary{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--muted)}
+
+.uploader{display:flex;flex-direction:column;gap:10px}
+.drop{height:140px;border-radius:10px;border:2px dashed rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;flex-direction:column;cursor:pointer}
+.drop input{display:none}
+.preset-list{display:flex;gap:8px;flex-wrap:wrap}
+.preset{padding:8px 10px;border-radius:8px;background:rgba(255,255,255,0.02);cursor:pointer;border:1px solid rgba(255,255,255,0.02)}
+
+/* Right area */
+.sidebar h3{margin:0 0 12px 0}
+.preview{height:220px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.progress{height:12px;background:rgba(255,255,255,0.03);border-radius:10px;margin-top:12px;overflow:hidden}
+.progress > i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--accent),#00d4ff)}
+.outputs{margin-top:12px;display:flex;flex-direction:column;gap:10px}
+.output{display:flex;gap:10px;align-items:center;padding:10px;border-radius:8px;background:rgba(255,255,255,0.015);border:1px solid rgba(255,255,255,0.02)}
+.thumb{width:120px;height:68px;border-radius:8px;background:#071020;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:12px}
+
+footer{max-width:980px;margin:18px auto;color:var(--muted);font-size:13px;padding:0 18px}
+
+@media (max-width:880px){.grid{grid-template-columns:1fr}.sidebar{order:2}.creator{order:1}}
+
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="mark">K</div>
+      <div>
+        <div class="title">Khush AI Generator</div>
+        <div class="subtitle">Free demo • Local UI only • Replace with your backend</div>
+      </div>
+    </div>
+  </header>  <main>
+    <div class="grid">
+      <section class="card creator">
+        <h2>Create AI video</h2>
+        <p style="color:var(--muted);margin-top:6px">Type a prompt, choose style, upload optional audio or image assets, then click <strong>Generate</strong>.</p><div class="controls" style="margin-top:14px">
+      <input id="prompt" class="input" placeholder="Describe your video (e.g. underwater city at sunset)" />
+
+      <div class="row">
+        <select id="style" class="select" style="flex:1">
+          <option>Documentary</option>
+          <option>Epic Trailer</option>
+          <option>Glitch Cyber</option>
+          <option>Cartoon</option>
+        </select>
+        <select id="length" class="select" style="width:120px">
+          <option>6s</option>
+          <option>12s</option>
+          <option selected>20s</option>
+        </select>
+      </div>
+
+      <div class="uploader">
+        <label class="drop" id="dropArea">Drop audio/image here or click to select<input id="fileIn" type="file" accept="image/*,audio/*,video/*" /></label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="preset-list" id="presets">
+            <div class="preset">Fast</div>
+            <div class="preset">High Quality</div>
+            <div class="preset">Low Bandwidth</div>
+          </div>
+          <button class="btn secondary" id="clearBtn">Clear</button>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:6px">
+        <button class="btn" id="generate">Generate</button>
+        <button class="btn secondary" id="example">Load Example</button>
+      </div>
+
+      <div style="margin-top:12px;color:var(--muted);font-size:13px">Note: This demo simulates generation locally. Replace the JS `fakeGenerate()` with your server API to actually produce videos.</div>
+    </div>
+  </section>
+
+  <aside class="card sidebar">
+    <h3>Preview & Output</h3>
+    <div class="preview" id="preview">No preview yet</div>
+
+    <div class="progress" title="progress">
+      <i id="bar"></i>
+    </div>
+
+    <div class="outputs" id="outputs"></div>
+  </aside>
+</div>
+
+  </main>  <footer>
+    Built with ❤️ by Khush. This is a free-to-use demo UI. To publish as a live generator you will need a backend service that accepts prompts and returns generated video files.
+  </footer>  <script>
+    // Basic interactive demo script (no backend). Replace with real API calls.
+    const promptEl = document.getElementById('prompt');
+    const preview = document.getElementById('preview');
+    const bar = document.getElementById('bar');
+    const outputs = document.getElementById('outputs');
+    const fileIn = document.getElementById('fileIn');
+    const drop = document.getElementById('dropArea');
+
+    document.getElementById('example').addEventListener('click', ()=>{
+      promptEl.value = 'A neon cybercity at dusk, cinematic drone shot, slow motion';
+    });
+
+    drop.addEventListener('click', ()=> fileIn.click());
+    drop.addEventListener('dragover', (e)=>{ e.preventDefault(); drop.style.borderColor='rgba(255,255,255,0.08)'; });
+    drop.addEventListener('dragleave', ()=> drop.style.borderColor='rgba(255,255,255,0.03)');
+    drop.addEventListener('drop', (e)=>{ e.preventDefault(); const f = e.dataTransfer.files[0]; handleFile(f); });
+    fileIn.addEventListener('change', (e)=>handleFile(e.target.files[0]));
+
+    document.getElementById('clearBtn').addEventListener('click', ()=>{
+      preview.textContent = 'No preview yet'; outputs.innerHTML=''; promptEl.value=''; bar.style.width='0%';
+    });
+
+    document.getElementById('generate').addEventListener('click', ()=>{
+      const text = promptEl.value.trim();
+      if(!text){ alert('Please enter a prompt.'); return; }
+      fakeGenerate(text);
+    });
+
+    function handleFile(file){
+      if(!file) return;
+      preview.textContent = file.name || 'Selected asset';
+    }
+
+    function fakeGenerate(prompt){
+      // start fake progress
+      bar.style.width='0%'; outputs.innerHTML=''; preview.textContent = 'Generating...';
+      let pct=0;
+      const iv = setInterval(()=>{
+        pct += Math.random()*12;
+        if(pct>98) pct = 98;
+        bar.style.width = pct + '%';
+      }, 500);
+
+      // after some time produce fake outputs
+      setTimeout(()=>{
+        clearInterval(iv);
+        bar.style.width='100%';
+        preview.innerHTML = '';
+
+        // create fake video card
+        const out = document.createElement('div'); out.className='output';
+        const thumb = document.createElement('div'); thumb.className='thumb'; thumb.textContent='MP4 • 720p';
+        const meta = document.createElement('div'); meta.style.flex='1';
+        const h = document.createElement('div'); h.style.fontWeight=700; h.textContent = prompt.slice(0,64) + (prompt.length>64? '...':'');
+        const p = document.createElement('div'); p.style.color='var(--muted)'; p.style.fontSize='13px'; p.textContent = 'Duration: 12s • Style: ' + document.getElementById('style').value;
+        const actions = document.createElement('div'); actions.style.display='flex'; actions.style.gap='8px';
+        const dl = document.createElement('button'); dl.className='btn'; dl.textContent='Download';
+        const play = document.createElement('button'); play.className='btn secondary'; play.textContent='Play';
+
+        // fake download: create blob URL using a short generated sample
+        dl.addEventListener('click', ()=>{
+          const blob = new Blob(['Khush AI sample video placeholder'], {type: 'video/mp4'});
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a'); a.href = url; a.download = 'khush_ai_sample.mp4'; document.body.appendChild(a); a.click(); a.remove();
+        });
+        play.addEventListener('click', ()=>{
+          const vwin = window.open('', '_blank');
+          vwin.document.write('<title>Preview</title><style>body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;color:#fff;height:100vh}</style><div style="text-align:center"><h3>Preview</h3><p style="color:#bbb">This is a simulated preview (no real video).</p></div>');});
+
+    actions.appendChild(dl); actions.appendChild(play);
+    meta.appendChild(h); meta.appendChild(p); meta.appendChild(actions);
+    out.appendChild(thumb); out.appendChild(meta);
+    outputs.appendChild(out);
+
+    // small toast style update
+    preview.textContent = 'Done — one sample created';
+  }, 3500 + Math.random()*2500);
+}
+
+  </script>
+</body>
+</html>
